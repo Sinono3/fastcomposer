@@ -18,7 +18,7 @@ CUDA_VISIBLE_DEVICES=0 accelerate launch \
     --generate_width 512 \
     --num_images_per_prompt 1 \
     --num_rows 1 \
-    --seed 42 \
+    --seed 100 \
     --guidance_scale 5 \
     --inference_steps 50 \
     --start_merge_step 10 \
