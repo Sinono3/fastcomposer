@@ -203,7 +203,6 @@ def load_default_args():
         local_rank=-1,
         checkpointing_steps=500,
         resume_from_checkpoint=None,
-        enable_xformers_memory_efficient_attention=False,
         train_text_encoder=False,
         train_image_encoder=False,
         keep_only_last_checkpoint=False,

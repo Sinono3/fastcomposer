@@ -58,9 +58,6 @@ def main():
 
     pipe.unet = model.unet
 
-    if args.enable_xformers_memory_efficient_attention:
-        pipe.unet.enable_xformers_memory_efficient_attention()
-
     pipe.text_encoder = model.text_encoder
     pipe.image_encoder = model.image_encoder
 
