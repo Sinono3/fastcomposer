@@ -10,13 +10,13 @@ MODEL=stable-diffusion-v1-5
 IMAGE_ENCODER=openai/clip-vit-large-patch14
 
 accelerate launch \
+    -m fastcomposer.train \
     --mixed_precision=bf16 \
     --machine_rank 0 \
     --num_machines 1 \
     --main_process_port 11135 \
     --num_processes 8 \
     --multi_gpu \
-    fastcomposer/train.py \
     --pretrained_model_name_or_path ${FAMILY}/${MODEL} \
     --dataset_name ${DATASET_PATH} \
     --logging_dir logs/${MODEL}/${DATASET_NAME}/${WANDB_NAME} \
@@ -27,7 +27,6 @@ accelerate launch \
     --learning_rate 1e-5 \
     --unet_lr_scale 1.0 \
     --checkpointing_steps 200 \
-    --mixed_precision bf16 \
     --allow_tf32 \
     --keep_only_last_checkpoint \
     --keep_interval 10000 \
