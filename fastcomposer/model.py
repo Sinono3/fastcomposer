@@ -314,6 +314,10 @@ def unet_store_cross_attention_scores(unet, attention_scores, layers=5):
         if isinstance(module, Attention) and "attn2" in name:
             if not any(layer in name for layer in applicable_layers):
                 continue
+
+            # NOTE: Why??
+            if isinstance(module.processor, AttnProcessor2_0):
+                module.set_processor(AttnProcessor())
             
             module.old_get_attention_scores = module.get_attention_scores
             module.get_attention_scores = types.MethodType(
@@ -449,11 +453,12 @@ class FastComposerModel(nn.Module):
             )
 
 
-        if args.attn not in ["attnprocessor", "attnprocessor2_0", "linear"]:
-            print("--attn: must provide either one of `attnprocessor`, `attnprocessor2_0`, `linear`")
+        if args.replace_attn not in ["none", "attnprocessor", "attnprocessor2_0", "linear"]:
+            print("--replace_attn: must provide either one of `none`, `attnprocessor`, `attnprocessor2_0`, `linear`")
             exit(1)
 
-        match args.attn:
+        match args.replace_attn:
+            case "none": pass
             case "attnprocessor": replace_attn(self, AttnProcessor())
             case "attnprocessor2_0": replace_attn(self, AttnProcessor2_0())
             case "linear": replace_attn(self, SanaLinearAttnProcessor2_0())

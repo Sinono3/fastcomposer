@@ -663,9 +663,9 @@ def parse_args(default=False):
     )
 
     parser.add_argument(
-        "--attn",
+        "--replace_attn",
         type=str,
-        default="attnprocessor",
+        default="none",
     )
 
     parser.add_argument("--freeze_postfuse_module", action="store_true")
