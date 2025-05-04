@@ -363,8 +363,12 @@ def unet_store_cross_attention_scores(unet, attention_scores, layers=5):
         if isinstance(module, Attention) and "attn2" in name:
             if not any(layer in name for layer in applicable_layers):
                 continue
-            if isinstance(module.processor, AttnProcessor2_0):
-                module.set_processor(AttnProcessor())
+            
+            # if isinstance(module.processor, AttnProcessor2_0):
+            #     module.set_processor(AttnProcessor())
+            # NOTE: Here we replace the attention processor by Sana's linear attention
+            # module, which should hopefully speed things up, at a small performance cost.
+            module.set_processor(SanaLinearAttnProcessor2_0())
                 
             module.old_get_attention_scores = module.get_attention_scores
             module.get_attention_scores = types.MethodType(
