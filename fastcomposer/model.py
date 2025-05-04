@@ -294,7 +294,7 @@ def unet_store_cross_attention_scores(unet, attention_scores, layers=5):
         "up_blocks.2",
         "up_blocks.3",
     ]
-
+    
     start_layer = (len(UNET_LAYER_NAMES) - layers) // 2
     end_layer = start_layer + layers
     applicable_layers = UNET_LAYER_NAMES[start_layer:end_layer]
@@ -314,12 +314,6 @@ def unet_store_cross_attention_scores(unet, attention_scores, layers=5):
             if not any(layer in name for layer in applicable_layers):
                 continue
             
-            # if isinstance(module.processor, AttnProcessor2_0):
-            #     module.set_processor(AttnProcessor())
-            # NOTE: Here we replace the attention processor by Sana's linear attention
-            # module, which should hopefully speed things up, at a small performance cost.
-            module.set_processor(SanaLinearAttnProcessor2_0())
-                
             module.old_get_attention_scores = module.get_attention_scores
             module.get_attention_scores = types.MethodType(
                 make_new_get_attention_scores_fn(name), module
@@ -453,6 +447,8 @@ class FastComposerModel(nn.Module):
                 args.object_localization_normalize,
             )
 
+        # replace_with_linear_attn(self)
+
     def _clear_cross_attention_scores(self):
         if hasattr(self, "cross_attention_scores"):
             keys = list(self.cross_attention_scores.keys())
@@ -476,13 +472,14 @@ class FastComposerModel(nn.Module):
             subfolder="unet",
             revision=args.non_ema_revision,
         )
-        replace_with_linear_attn(unet)
 
         image_encoder = FastComposerCLIPImageEncoder.from_pretrained(
             args.image_encoder_name_or_path,
         )
 
-        return FastComposerModel(text_encoder, image_encoder, vae, unet, args)
+        model = FastComposerModel(text_encoder, image_encoder, vae, unet, args)
+        # replace_with_linear_attn(model)
+        return model
 
     def to_pipeline(self):
         pipe = StableDiffusionPipeline.from_pretrained(

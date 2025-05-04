@@ -50,27 +50,9 @@ class SanaLinearAttnProcessor2_0:
 
         return hidden_states
 
+# NOTE: Here we replace the attention processor by Sana's linear attention
+# module, which should hopefully speed things up, at a small performance cost.
 def replace_with_linear_attn(unet: nn.Module):
-    UNET_LAYER_NAMES = [
-        "down_blocks.0",
-        "down_blocks.1",
-        "down_blocks.2",
-        "mid_block",
-        "up_blocks.1",
-        "up_blocks.2",
-        "up_blocks.3",
-    ]
-
-    layers = 5
-    start_layer = (len(UNET_LAYER_NAMES) - layers) // 2
-    end_layer = start_layer + layers
-    applicable_layers = UNET_LAYER_NAMES[start_layer:end_layer]
-    # Replace attention with linear attention 
     for name, module in unet.named_modules():
-        if isinstance(module, Attention) and "attn2" in name:
-            if not any(layer in name for layer in applicable_layers):
-                continue
-            
-            # NOTE: Here we replace the attention processor by Sana's linear attention
-            # module, which should hopefully speed things up, at a small performance cost.
+        if isinstance(module, Attention):
             module.set_processor(SanaLinearAttnProcessor2_0())

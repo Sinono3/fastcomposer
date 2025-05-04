@@ -129,8 +129,8 @@ def train():
         )
 
     # Only unfreeze unet attention OV weights
-    for name, module in model.unet.named_modules():
-        if isinstance(module, Attention) and "attn2" in name:
+    for name, module in model.named_modules():
+        if isinstance(module, Attention):
             module.to_out.requires_grad_(True)
             module.to_v.requires_grad_(True)
 
