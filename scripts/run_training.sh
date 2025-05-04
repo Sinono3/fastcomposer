@@ -1,3 +1,4 @@
+#!/bin/bash
 export WANDB_NAME=postfuse-localize-ffhq-1_5-1e-5
 export WANDB_DISABLE_SERVICE=true
 export CUDA_VISIBLE_DEVICES="0,1,2,3,4,5,6,7"

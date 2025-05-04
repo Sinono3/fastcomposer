@@ -1,3 +1,4 @@
+#!/bin/bash
 CAPTION="a man <|image|> and a man <|image|> are reading book together"
 DEMO_NAME="newton_einstein"
 
