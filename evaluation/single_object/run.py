@@ -7,7 +7,7 @@ import torch
 import glob 
 import PIL
 import os 
-
+from tqdm import tqdm
 
 @torch.no_grad()
 def main():
@@ -22,6 +22,7 @@ def main():
 
     model = convert_model_to_pipeline(args, accelerator.device)
     model.safety_checker = None 
+    model.set_progress_bar_config(disable=True)
 
     os.makedirs(args.output_dir, exist_ok=True)
 
@@ -31,37 +32,43 @@ def main():
         unique_token, is_fastcomposer=True, split="eval"
     )
 
-    for case_id, (prompt_list, subject) in enumerate(prompt_subject_pairs):
-        real_case_id = case_id + args.start_idx
+    print("total: ", )
 
-        reference_image_path = sorted(
-            glob.glob(
-                os.path.join(args.dataset_name, subject, "*.jpg")
-            )
-        )[0]
+    total = sum(map(lambda x: len(x[0]), prompt_subject_pairs))
+    with tqdm(total=total) as pbar:
+        for case_id, (prompt_list, subject) in enumerate(prompt_subject_pairs):
+            real_case_id = case_id + args.start_idx
 
-        reference_image = PIL.Image.open(reference_image_path).convert("RGB")
-
-        for prompt_id, prompt in enumerate(prompt_list):
-            output_images = model(
-                prompt=prompt,
-                height=512,
-                width=512,
-                num_inference_steps=50,
-                guidance_scale=5.0,
-                num_images_per_prompt=args.num_images_per_prompt,
-                alpha_=0.5,
-                reference_subject_images=[reference_image],
-            ).images
-
-
-            for instance_id in range(args.num_images_per_prompt):
-                output_images[instance_id].save(
-                    os.path.join(
-                        args.output_dir,
-                        f"subject_{real_case_id:04d}_prompt_{prompt_id:04d}_instance_{instance_id:04d}.jpg",
-                    )
+            reference_image_path = sorted(
+                glob.glob(
+                    os.path.join(args.dataset_name, subject, "*.jpg")
                 )
+            )[0]
+
+            reference_image = PIL.Image.open(reference_image_path).convert("RGB")
+
+            for prompt_id, prompt in enumerate(prompt_list):
+                output_images = model(
+                    prompt=prompt,
+                    height=512,
+                    width=512,
+                    num_inference_steps=50,
+                    guidance_scale=5.0,
+                    num_images_per_prompt=args.num_images_per_prompt,
+                    alpha_=0.5,
+                    reference_subject_images=[reference_image],
+                ).images
+
+
+                for instance_id in range(args.num_images_per_prompt):
+                    output_images[instance_id].save(
+                        os.path.join(
+                            args.output_dir,
+                            f"subject_{real_case_id:04d}_prompt_{prompt_id:04d}_instance_{instance_id:04d}.jpg",
+                        )
+                    )
+
+                pbar.update(1)
 
 
 if __name__ == "__main__":
