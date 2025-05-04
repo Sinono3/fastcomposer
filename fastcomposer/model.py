@@ -16,7 +16,7 @@ import types
 import torchvision.transforms as T
 import gc
 import numpy as np
-from fastcomposer.linear_attn import replace_with_linear_attn
+from fastcomposer.linear_attn import replace_with_linear_attn, SanaLinearAttnProcessor2_0
 
 inference_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
 
