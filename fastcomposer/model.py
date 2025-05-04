@@ -478,7 +478,7 @@ class FastComposerModel(nn.Module):
         )
 
         model = FastComposerModel(text_encoder, image_encoder, vae, unet, args)
-        # replace_with_linear_attn(model)
+        replace_with_linear_attn(model)
         return model
 
     def to_pipeline(self):
