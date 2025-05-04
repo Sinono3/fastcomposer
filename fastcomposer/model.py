@@ -449,9 +449,14 @@ class FastComposerModel(nn.Module):
             )
 
 
+        if args.attn not in ["attnprocessor", "attnprocessor2_0", "linear"]:
+            print("--attn: must provide either one of `attnprocessor`, `attnprocessor2_0`, `linear`")
+            exit(1)
+
         match args.attn:
             case "attnprocessor": replace_attn(self, AttnProcessor())
             case "attnprocessor2_0": replace_attn(self, AttnProcessor2_0())
+            case "linear": replace_attn(self, SanaLinearAttnProcessor2_0())
 
     def _clear_cross_attention_scores(self):
         if hasattr(self, "cross_attention_scores"):
