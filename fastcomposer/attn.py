@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing import Optional
-from diffusers.models.attention_processor import Attention
+from diffusers.models.attention_processor import Attention, AttnProcessor, AttnProcessor2_0
 
 class SanaLinearAttnProcessor2_0:
     r"""
@@ -50,9 +50,9 @@ class SanaLinearAttnProcessor2_0:
 
         return hidden_states
 
-# NOTE: Here we replace the attention processor by Sana's linear attention
+# NOTE: Here we replace the attention processor by our custom fast attention
 # module, which should hopefully speed things up, at a small performance cost.
-def replace_with_linear_attn(unet: nn.Module):
-    for name, module in unet.named_modules():
+def replace_attn(unet: nn.Module, processor):
+    for module in unet.modules():
         if isinstance(module, Attention):
-            module.set_processor(SanaLinearAttnProcessor2_0())
+            module.set_processor(processor)

@@ -16,7 +16,8 @@ import types
 import torchvision.transforms as T
 import gc
 import numpy as np
-from fastcomposer.linear_attn import replace_with_linear_attn, SanaLinearAttnProcessor2_0
+from diffusers.models.attention_processor import AttnProcessor, AttnProcessor2_0
+from fastcomposer.attn import replace_attn, SanaLinearAttnProcessor2_0
 
 inference_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
 
@@ -447,7 +448,10 @@ class FastComposerModel(nn.Module):
                 args.object_localization_normalize,
             )
 
-        # replace_with_linear_attn(self)
+
+        match args.attn:
+            case "attnprocessor": replace_attn(self, AttnProcessor())
+            case "attnprocessor2_0": replace_attn(self, AttnProcessor2_0())
 
     def _clear_cross_attention_scores(self):
         if hasattr(self, "cross_attention_scores"):
@@ -477,9 +481,7 @@ class FastComposerModel(nn.Module):
             args.image_encoder_name_or_path,
         )
 
-        model = FastComposerModel(text_encoder, image_encoder, vae, unet, args)
-        replace_with_linear_attn(model)
-        return model
+        return FastComposerModel(text_encoder, image_encoder, vae, unet, args)
 
     def to_pipeline(self):
         pipe = StableDiffusionPipeline.from_pretrained(

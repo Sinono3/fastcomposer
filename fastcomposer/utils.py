@@ -662,6 +662,12 @@ def parse_args(default=False):
         default="postfuse",
     )
 
+    parser.add_argument(
+        "--attn",
+        type=str,
+        default="attnprocessor",
+    )
+
     parser.add_argument("--freeze_postfuse_module", action="store_true")
 
     if default:

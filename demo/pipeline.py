@@ -1,6 +1,6 @@
 from fastcomposer.pipeline import StableDiffusionFastCompposerPipeline
 from fastcomposer.model import FastComposerModel
-from fastcomposer.linear_attn import replace_with_linear_attn
+from fastcomposer.attn import replace_attn
 from diffusers import StableDiffusionPipeline
 from fastcomposer.transforms import PadToSquare
 from torchvision import transforms as T
@@ -50,12 +50,10 @@ def convert_model_to_pipeline(args, device):
         )
     )
     pipe.unet = model.unet
-    replace_with_linear_attn(pipe.unet)
     pipe.text_encoder = model.text_encoder
     pipe.postfuse_module = model.postfuse_module
     pipe.image_encoder = model.image_encoder
     pipe.image_token_id = image_token_id
     pipe.special_tokenizer = tokenizer
-
     del model
     return pipe
