@@ -14,6 +14,7 @@ import os
 from tqdm.auto import tqdm
 from fastcomposer.pipeline import (
     stable_diffusion_call_with_references_delayed_conditioning,
+    stable_diffusion_call_with_references_delayed_conditioning_bench,
 )
 import types
 import itertools
@@ -62,10 +63,6 @@ def main():
     pipe.image_encoder = model.image_encoder
 
     pipe.postfuse_module = model.postfuse_module
-
-    pipe.inference = types.MethodType(
-        stable_diffusion_call_with_references_delayed_conditioning, pipe
-    )
 
     del model
 
@@ -144,7 +141,8 @@ def main():
 
     cross_attention_kwargs = {}
 
-    images = pipe.inference(
+    images = stable_diffusion_call_with_references_delayed_conditioning(
+        pipe,
         prompt_embeds=encoder_hidden_states,
         num_inference_steps=args.inference_steps,
         height=args.generate_height,
