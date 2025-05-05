@@ -446,9 +446,9 @@ class FastComposerModel(nn.Module):
 
         match args.replace_attn:
             case "none": pass
-            case "attnprocessor": replace_attn(self, AttnProcessor())
-            case "attnprocessor2_0": replace_attn(self, AttnProcessor2_0())
-            case "linear": replace_attn(self, SanaLinearAttnProcessor2_0())
+            case "attnprocessor": replace_attn(self.unet, AttnProcessor())
+            case "attnprocessor2_0": replace_attn(self.unet, AttnProcessor2_0())
+            case "linear": replace_attn(self.unet, SanaLinearAttnProcessor2_0())
 
         if self.object_localization:
             self.cross_attention_scores = {}
