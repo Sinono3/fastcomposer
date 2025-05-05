@@ -1,6 +1,6 @@
 #!/bin/bash
-export WANDB_NAME=postfuse-localize-ffhq-1_5-1e-5
-export WANDB_DISABLE_SERVICE=true
+export WANDB_NAME=fastcomposer-finetuned-linear_attn
+export WANDB_DISABLE_SERVICE=false
 export CUDA_VISIBLE_DEVICES="0,1,2,3,4,5,6,7"
 
 DATASET_PATH="data/ffhq_wild_files"
@@ -12,6 +12,7 @@ IMAGE_ENCODER=openai/clip-vit-large-patch14
 
 accelerate launch \
     -m fastcomposer.train_freeze \
+    --replace_attn linear \
     --mixed_precision=bf16 \
     --pretrained_model_name_or_path ${FAMILY}/${MODEL} \
     --dataset_name ${DATASET_PATH} \
