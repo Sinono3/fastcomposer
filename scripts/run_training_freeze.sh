@@ -11,6 +11,7 @@ MODEL=stable-diffusion-v1-5
 IMAGE_ENCODER=openai/clip-vit-large-patch14
 
 accelerate launch \
+    --mixed_precision=bf16 \
     -m fastcomposer.train_freeze \
     --replace_attn linear \
     --mixed_precision=bf16 \
