@@ -13,8 +13,7 @@ import torch
 import os
 from tqdm.auto import tqdm
 from fastcomposer.pipeline import (
-    stable_diffusion_call_with_references_delayed_conditioning,
-    stable_diffusion_call_with_references_delayed_conditioning_bench,
+    stable_diffusion_call_with_references_delayed_conditioning
 )
 import types
 import itertools
