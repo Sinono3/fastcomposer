@@ -442,17 +442,6 @@ class FastComposerModel(nn.Module):
 
         self.postfuse_module = FastComposerPostfuseModule(embed_dim)
 
-        if self.object_localization:
-            self.cross_attention_scores = {}
-            self.unet = unet_store_cross_attention_scores(
-                self.unet, self.cross_attention_scores, self.localization_layers
-            )
-            self.object_localization_loss_fn = BalancedL1Loss(
-                args.object_localization_threshold,
-                args.object_localization_normalize,
-            )
-
-
         if args.replace_attn not in ["none", "attnprocessor", "attnprocessor2_0", "linear"]:
             print("--replace_attn: must provide either one of `none`, `attnprocessor`, `attnprocessor2_0`, `linear`")
             exit(1)
@@ -462,6 +451,16 @@ class FastComposerModel(nn.Module):
             case "attnprocessor": replace_attn(self, AttnProcessor())
             case "attnprocessor2_0": replace_attn(self, AttnProcessor2_0())
             case "linear": replace_attn(self, SanaLinearAttnProcessor2_0())
+
+        if self.object_localization:
+            self.cross_attention_scores = {}
+            self.unet = unet_store_cross_attention_scores(
+                self.unet, self.cross_attention_scores, self.localization_layers
+            )
+            self.object_localization_loss_fn = BalancedL1Loss(
+                args.object_localization_threshold,
+                args.object_localization_normalize,
+            )
 
     def _clear_cross_attention_scores(self):
         if hasattr(self, "cross_attention_scores"):
