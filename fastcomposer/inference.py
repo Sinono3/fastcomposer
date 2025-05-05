@@ -48,9 +48,11 @@ def main():
 
     model = FastComposerModel.from_pretrained(args)
 
-    model.load_state_dict(
-        torch.load(Path(args.finetuned_model_path), weights_only=False, map_location="cpu")
-    )
+    if args.finetuned_model_path.ends_with(".safetensors"):
+        import safetensors
+        model.load_state_dict(safetensors.torch.load_file(Path(args.finetuned_model_path)))
+    else:
+        model.load_state_dict(torch.load(Path(args.finetuned_model_path), weights_only=False, map_location="cpu"))
 
     model = model.to(device=accelerator.device, dtype=weight_dtype)
 
