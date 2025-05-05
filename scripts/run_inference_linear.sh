@@ -7,6 +7,7 @@ CUDA_VISIBLE_DEVICES=0 accelerate launch \
     --mixed_precision=fp16 \
     --pretrained_model_name_or_path runwayml/stable-diffusion-v1-5 \
     --finetuned_model_path models/stable-diffusion-v1-5/ffhq/fastcomposer-finetuned-linear_attn/checkpoint-*/model.safetensors \
+    --replace_attn linear \
     --test_reference_folder data/${DEMO_NAME} \
     --test_caption "${CAPTION}" \
     --output_dir outputs/${DEMO_NAME} \
