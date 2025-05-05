@@ -316,9 +316,7 @@ def unet_store_cross_attention_scores(unet, attention_scores, layers=5):
                 continue
 
             # NOTE: Why??
-            if isinstance(module.processor, AttnProcessor2_0):
-                module.set_processor(AttnProcessor())
-            
+            module.set_processor(AttnProcessor())
             module.old_get_attention_scores = module.get_attention_scores
             module.get_attention_scores = types.MethodType(
                 make_new_get_attention_scores_fn(name), module
