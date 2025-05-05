@@ -48,7 +48,7 @@ def main():
 
     model = FastComposerModel.from_pretrained(args)
 
-    if args.finetuned_model_path.ends_with(".safetensors"):
+    if args.finetuned_model_path.endswith(".safetensors"):
         import safetensors
         model.load_state_dict(safetensors.torch.load_file(Path(args.finetuned_model_path)))
     else:
