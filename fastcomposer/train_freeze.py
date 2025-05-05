@@ -128,15 +128,15 @@ def train():
             torch.load(Path(args.load_model) / "pytorch_model.bin", map_location="cpu")
         )
 
-    # Only unfreeze unet weights
-    for param in model.unet.parameters():
-        param.requires_grad_(True)
+    # # Only unfreeze unet weights
+    # for param in model.unet.parameters():
+    #     param.requires_grad_(True)
 
-    # # Only unfreeze unet attention OV weights
-    # for name, module in model.unet.named_modules():
-    #     if isinstance(module, Attention):
-    #         module.to_out.requires_grad_(True)
-    #         module.to_v.requires_grad_(True)
+    # Only unfreeze unet attention OV weights
+    for name, module in model.unet.named_modules():
+        if isinstance(module, Attention):
+            module.to_out.requires_grad_(True)
+            module.to_v.requires_grad_(True)
 
     # if args.text_image_linking in ["postfuse"] and not args.freeze_postfuse_module:
     #     model.postfuse_module.requires_grad_(True)
