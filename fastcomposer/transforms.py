@@ -15,6 +15,25 @@ class SegmentProcessor(torch.nn.Module):
     def get_background(self, image):
         raise NotImplementedError
 
+# class SegmentProcessor(torch.nn.Module):
+#     def forward(self, image, background, segmap, obj_id, bbox):
+#         """
+#         image      : torch.Tensor[C, H, W]
+#         background : torch.Tensor[C, H, W]  (same H, W as image)
+#         segmap     : torch.Tensor[H, W]      integer mask of segment IDs
+#         obj_id     : int                     the segment ID you want to *extract*
+#         bbox       : (h1, w1, h2, w2)        coordinates to crop
+#         """
+#         # Build a 3×H×W boolean mask: True where segmap == obj_id
+#         keep_mask = (segmap == obj_id).unsqueeze(0)  # shape [1, H, W]
+        
+#         # Wherever keep_mask is True, take `image`, else take `background`
+#         combined = torch.where(keep_mask, image, background)  # [C, H, W]
+        
+#         # Crop to the bbox (h1:h2, w1:w2)
+#         h1, w1, h2, w2 = bbox
+#         return combined[:, h1:h2, w1:w2]
+
 
 class RandomSegmentProcessor(SegmentProcessor):
     def get_background(self, image):

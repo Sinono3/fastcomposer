@@ -336,6 +336,7 @@ class StableDiffusionFastCompposerPipeline(StableDiffusionPipeline):
                     if callback is not None and i % callback_steps == 0:
                         callback(i, t, latents)
 
+        latents = latents.to(torch.float32)
         if output_type == "latent":
             image = latents
             has_nsfw_concept = None
@@ -509,6 +510,7 @@ def stable_diffusion_call_with_references_delayed_conditioning(
                 if callback is not None and i % callback_steps == 0:
                     callback(i, t, latents)
 
+    latents = latents.to(torch.float32)
     if output_type == "latent":
         image = latents
         has_nsfw_concept = None

@@ -1,5 +1,5 @@
 from fastcomposer.pipeline import StableDiffusionFastCompposerPipeline
-from fastcomposer.model import FastComposerModel
+from fastcomposer.model import FastComposerModel, create_pipeline_renamed
 from fastcomposer.attn import replace_attn
 from diffusers import StableDiffusionPipeline
 from fastcomposer.transforms import PadToSquare
@@ -26,8 +26,17 @@ def convert_model_to_pipeline(args, device):
     tokenizer.add_tokens(["img"], special_tokens=True)
     image_token_id = tokenizer.convert_tokens_to_ids("img")
 
-    pipe = StableDiffusionFastCompposerPipeline.from_pretrained(
-        args.pretrained_model_name_or_path, torch_dtype=weight_dtype
+    #pipe = StableDiffusionFastCompposerPipeline.from_pretrained(args.pretrained_model_name_or_path, torch_dtype=weight_dtype).to(device)
+    pipe = create_pipeline_renamed(args.pretrained_model_name_or_path, args.image_encoder_name_or_path, args.revision, args.non_ema_revision)
+    pipe = StableDiffusionFastCompposerPipeline(
+        pipe.vae,
+        pipe.text_encoder,
+        pipe.tokenizer,
+        pipe.unet,
+        pipe.scheduler,
+        pipe.safety_checker,
+        pipe.feature_extractor,
+        False
     ).to(device)
 
     model.load_state_dict(torch.load(args.finetuned_model_path, map_location="cpu"))

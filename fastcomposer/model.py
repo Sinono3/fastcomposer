@@ -19,6 +19,76 @@ import numpy as np
 from diffusers.models.attention_processor import AttnProcessor, AttnProcessor2_0
 from fastcomposer.attn import replace_attn, SanaLinearAttnProcessor2_0
 
+
+import os
+import torch
+
+from diffusers import StableDiffusionPipeline, AutoencoderKL, UNet2DConditionModel
+from transformers import CLIPTextModel, CLIPTokenizer
+from diffusers.schedulers import PNDMScheduler
+from huggingface_hub import snapshot_download
+
+def rename_attn_keys(state_dict):
+    """Rename attn keys from new format to old format"""
+    key_mapping = {
+        'to_q': 'query',
+        'to_k': 'key', 
+        'to_v': 'value',
+        'to_out.0': 'proj_attn'
+    }
+
+    new_state_dict = {}
+    for key, value in state_dict.items():
+        new_key = key
+        for new_name, old_name in key_mapping.items():
+            if new_name in key:
+                new_key = key.replace(new_name, old_name)
+                break
+        new_state_dict[new_key] = value
+
+    return new_state_dict
+
+def load_vae_rename(pretrained_model_name_or_path, revision):
+    # Load VAE with key renaming
+    vae_path = snapshot_download(pretrained_model_name_or_path, allow_patterns="vae/*", revision=revision)
+    vae_config_path = os.path.join(vae_path, "vae", "config.json")
+    # TODO: No compatibility for safetensors
+    vae_weights_path = os.path.join(vae_path, "vae", "diffusion_pytorch_model.bin")
+
+    # Load and rename VAE state dict
+    vae_state_dict = torch.load(vae_weights_path, map_location='cuda')
+    renamed_vae_state_dict = rename_attn_keys(vae_state_dict)
+    vae = AutoencoderKL.from_config(vae_config_path)
+    vae.load_state_dict(renamed_vae_state_dict)
+    return vae
+
+def create_pipeline_renamed(pretrained_model_name_or_path, image_encoder_name_or_path, revision, non_ema_revision):
+    text_encoder = FastComposerTextEncoder.from_pretrained(
+        pretrained_model_name_or_path,
+        subfolder="text_encoder",
+        revision=revision,
+    )
+    vae = load_vae_rename(pretrained_model_name_or_path, revision)
+
+    unet = UNet2DConditionModel.from_pretrained(
+        pretrained_model_name_or_path,
+        subfolder="unet",
+        revision=non_ema_revision,
+    )
+
+    image_encoder = FastComposerCLIPImageEncoder.from_pretrained(
+        image_encoder_name_or_path,
+    )
+    return StableDiffusionPipeline.from_pretrained(
+        pretrained_model_name_or_path,
+        revision=revision,
+        non_ema_revision=non_ema_revision,
+        text_encoder=text_encoder,
+        vae=vae,
+        unet=unet,
+    )
+
+
 inference_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
 
 
@@ -475,9 +545,11 @@ class FastComposerModel(nn.Module):
             subfolder="text_encoder",
             revision=args.revision,
         )
-        vae = AutoencoderKL.from_pretrained(
-            args.pretrained_model_name_or_path, subfolder="vae", revision=args.revision
-        )
+        # vae = AutoencoderKL.from_pretrained(
+        #     args.pretrained_model_name_or_path, subfolder="vae", revision=args.revision
+        # )
+        vae = load_vae_rename(args.pretrained_model_name_or_path, args.revision)
+
         unet = UNet2DConditionModel.from_pretrained(
             args.pretrained_model_name_or_path,
             subfolder="unet",

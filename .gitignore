@@ -1,3 +1,7 @@
+data/ffhq_wild_files/
+outputs/
+models/
+wandb/
 *.pem
 
 # Byte-compiled / optimized / DLL files

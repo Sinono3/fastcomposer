@@ -1,6 +1,6 @@
 from fastcomposer.transforms import get_object_transforms
 from fastcomposer.data import DemoDataset
-from fastcomposer.model import FastComposerModel
+from fastcomposer.model import FastComposerModel, create_pipeline_renamed
 from diffusers import StableDiffusionPipeline
 from transformers import CLIPTokenizer
 from accelerate.utils import set_seed
@@ -42,9 +42,11 @@ def main():
     elif accelerator.mixed_precision == "bf16":
         weight_dtype = torch.bfloat16
 
-    pipe = StableDiffusionPipeline.from_pretrained(
-        args.pretrained_model_name_or_path, torch_dtype=weight_dtype
-    )
+    # pipe = StableDiffusionPipeline.from_pretrained(
+    #     args.pretrained_model_name_or_path, torch_dtype=weight_dtype
+    # )
+    # NOTE: Use custom SD3 pipeline creation function (because the attention has a different naem)
+    pipe = create_pipeline_renamed(args.pretrained_model_name_or_path, args.image_encoder_name_or_path, args.revision, args.non_ema_revision)
 
     model = FastComposerModel.from_pretrained(args)
 

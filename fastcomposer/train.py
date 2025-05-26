@@ -42,11 +42,14 @@ from fastcomposer.transforms import (
 )
 
 from fastcomposer.data import get_data_loader, FastComposerDataset
+import subprocess
 
 logger = get_logger(__name__)
 
 
 def train():
+    subprocess.run(["./scripts/run_inference_checkpoint.sh", f"{66000}"]) 
+
     args = parse_args()
 
     accelerator = Accelerator(
@@ -63,6 +66,20 @@ def train():
         if args.logging_dir is not None:
             os.makedirs(args.logging_dir, exist_ok=True)
     accelerator.wait_for_everyone()
+
+    # DEBUG: Dump cuda memory in case of OOM
+    # def oom_observer(device, alloc, device_alloc, device_free):
+    #     # snapshot right after an OOM happened
+    #     print('saving allocated state during OOM')
+    #     torch.cuda.memory._record_memory_history()
+    #     torch.cuda.memory._dump_snapshot("oom_snapshot.pickle")
+    # torch.cuda.memory._record_memory_history()
+    # torch._C._cuda_attach_out_of_memory_observer(oom_observer)
+    # DEBUG: Track memory use to detect memory leaks 
+    # from pympler.tracker import SummaryTracker
+    # tracker = SummaryTracker()
+
+    torch.backends.cudnn.benchmark = True
 
     # Make one log on every process with the configuration for debugging.
     t = time.localtime()
@@ -147,6 +164,12 @@ def train():
         else:
             model.image_encoder.requires_grad_(True)
             model.image_encoder.to(torch.float32)
+
+    # # Xformers
+    # from diffusers.utils.import_utils import is_xformers_available
+    # if is_xformers_available():
+    #     model.unet.enable_xformers_memory_efficient_attention()
+    #     model.vae.enable_xformers_memory_efficient_attention()
 
     # Create EMA for the unet.
     if args.use_ema:
@@ -247,6 +270,7 @@ def train():
 
     # Prepare everything with our `accelerator`.
     model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+        # torch.compile(model), optimizer, train_dataloader, lr_scheduler
         model, optimizer, train_dataloader, lr_scheduler
     )
 
@@ -389,6 +413,10 @@ def train():
                 denoise_loss = 0.0
                 localization_loss = 0.0
 
+                # DEBUG: to find memory leak
+                # if (global_step % 100 == 0):
+                #   tracker.print_diff()
+
                 if (
                     global_step % args.checkpointing_steps == 0
                     and accelerator.is_local_main_process
@@ -411,6 +439,13 @@ def train():
                                 ):
                                     logger.info(f"Removing {file}")
                                     shutil.rmtree(os.path.join(args.output_dir, file))
+                    
+                if (
+                    global_step % 10000 == 0
+                    and accelerator.is_local_main_process
+                ):
+                    # Run demo
+                    subprocess.run(["./scripts/run_inference_checkpoint.sh", f"{global_step}"]) 
 
             logs = {
                 "l_noise": return_dict["denoise_loss"].detach().item(),
