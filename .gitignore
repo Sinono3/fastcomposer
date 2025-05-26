@@ -2,6 +2,8 @@ data/ffhq_wild_files/
 outputs/
 models/
 wandb/
+.DS_Store
+
 *.pem
 
 # Byte-compiled / optimized / DLL files
